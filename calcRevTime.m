@@ -46,15 +46,13 @@ logRevCurve = 10*log10(max(revCurve, eps)); % Convert to dB
 
 % Estimate linear regression function
 timeAx = linspace(0, sigLen/sampFreq, sigLen);
-indStart = find(logRevCurve <= -1*regInterval(1));
-indStart = indStart(1);
-indEnd = find(logRevCurve >= -1*regInterval(2));
-indEnd = indEnd(end);
-regCurve = logRevCurve(indStart:indEnd,:);
-coef = polyfit(timeAx(indStart:indEnd), regCurve, 1);
+indInterval = find(logRevCurve <= -1*regInterval(1) & logRevCurve >= -1*regInterval(2));
+indStart = indInterval(1); % index of -1*regInterval(1) dB
+indEnd = indInterval(end); % index of -1*regInterval(2) dB
+coef = polyfit(timeAx(indStart:indEnd), logRevCurve(indStart:indEnd, :), 1); % linear regression
 
 % Calculate reverberation time (RT60)
-rt60 = (-60 -coef(2))/coef(1);
+rt60 = (-60 - coef(2))/coef(1); % -60 = coef(1) * rt60 + coef(2)
 
 % Plot reverberation curve
 if isPlot
