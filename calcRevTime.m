@@ -1,13 +1,13 @@
-function [rt60] = calcRevTime(impRes, sampFreq, regInterval, analyFreq, isPlot)
+function [rt60] = calcRevTime(impRes, sampFreq, regIntvl, analyFreq, isPlot)
 % Calculate reverberation time (RT60) from impulse response
 %
 % [Syntax]
-%       [rt60] = calcRevTime(impRes,sampFreq,regInterval,analyFreq)
+%       [rt60] = calcRevTime(impRes,sampFreq,regIntvl,analyFreq)
 %
 % [Inputs]
 %       impRes: input impulse response waveform (sigLen x 1)
 %     sampFreq: sampling frequency (positive scalr)
-%  regInterval: Energy interval ([dB]) for linear regression (nonnegative 1 x 2 vector, default: [5, 35])
+%     regIntvl: Energy interval ([dB]) for linear regression (nonnegative 1 x 2 vector, default: [5, 35])
 %    analyFreq: Center frequency ([Hz]) of band-pass filter (nonnegative scalar, if analyFreq = 0, filtering will not be applied, default: 500)
 %       isPlot: Plot reverberation curve and regression function or not (true/false, default: true)
 %
@@ -19,7 +19,7 @@ function [rt60] = calcRevTime(impRes, sampFreq, regInterval, analyFreq, isPlot)
 arguments
     impRes (:,1) {mustBeNumeric}
     sampFreq (1,1) {mustBePositive}
-    regInterval (1,2) {mustBeNonnegative} = [5, 35]
+    regIntvl (1,2) {mustBeNonnegative} = [5, 35]
     analyFreq (1,1) {mustBeNonnegative} = 500
     isPlot (1,1) = true
 end
@@ -46,16 +46,16 @@ logRevCurve = 10*log10(max(revCurve, eps)); % Convert to dB
 
 % Estimate linear regression function
 timeAx = linspace(0, sigLen/sampFreq, sigLen);
-indInterval = find(logRevCurve <= -1*regInterval(1) & logRevCurve >= -1*regInterval(2));
-indStart = indInterval(1); % index of -1*regInterval(1) dB
-indEnd = indInterval(end); % index of -1*regInterval(2) dB
+indIntvl = find(logRevCurve <= -1*regIntvl(1) & logRevCurve >= -1*regIntvl(2));
+indStart = indIntvl(1); % index of -1*regIntvl(1) dB
+indEnd = indIntvl(end); % index of -1*regIntvl(2) dB
 coef = polyfit(timeAx(indStart:indEnd), logRevCurve(indStart:indEnd, :), 1); % linear regression
 a = coef(1); % gradient
 b = coef(2); % intercept
 
 % Calculate reverberation time (RT60)
-beginPnt = (-regInterval(1) - b) / a; % - regInterval(1) = a * beginPnt + b
-endPnt = (-60 - regInterval(1) - b)/a; % -60 - regInterval(1) = a * endPnt + b
+beginPnt = (-regIntvl(1) - b) / a; % - regIntvl(1) = a * beginPnt + b
+endPnt = (-60 - regIntvl(1) - b)/a; % -60 - regIntvl(1) = a * endPnt + b
 rt60 = endPnt - beginPnt;
 
 % Plot reverberation curve
@@ -67,11 +67,11 @@ if isPlot
     xlabel("Time [s]"); ylabel("Reverberation energy [dB]");
     hold on;
     plot(timeAx, a*timeAx + b, "LineWidth", 1);
-    yline(-regInterval(1), '-r', {'Reg begin point'}, "LabelHorizontalAlignment", "left", "LabelVerticalAlignment", "bottom", "FontSize", 11);
-    yline(-regInterval(2), '-r', {'Reg end point'}, "LabelHorizontalAlignment", "left", "LabelVerticalAlignment", "bottom", "FontSize", 11);
+    yline(-regIntvl(1), '-r', {'Reg begin point'}, "LabelHorizontalAlignment", "left", "LabelVerticalAlignment", "bottom", "FontSize", 11);
+    yline(-regIntvl(2), '-r', {'Reg end point'}, "LabelHorizontalAlignment", "left", "LabelVerticalAlignment", "bottom", "FontSize", 11);
     xline(beginPnt, '-r', {'RT60 begin point'}, "LabelVerticalAlignment", "bottom", "FontSize", 11);
     xline(endPnt, '-r', {'RT60 end point'}, "LabelVerticalAlignment", "bottom", "FontSize", 11);
-    legend(["Reverberation curve", sprintf("Linear regression in [%d, %d] dB", -1*regInterval(1), -1*regInterval(2))]);
+    legend(["Reverberation curve", sprintf("Linear regression in [%d, %d] dB", -1*regIntvl(1), -1*regIntvl(2))]);
     fprintf("Reverberation time (RT60) is %.3f [ms].\n", rt60*1000);
     hold off;
 end
