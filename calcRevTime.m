@@ -50,9 +50,13 @@ indInterval = find(logRevCurve <= -1*regInterval(1) & logRevCurve >= -1*regInter
 indStart = indInterval(1); % index of -1*regInterval(1) dB
 indEnd = indInterval(end); % index of -1*regInterval(2) dB
 coef = polyfit(timeAx(indStart:indEnd), logRevCurve(indStart:indEnd, :), 1); % linear regression
+a = coef(1); % gradient
+b = coef(2); % intercept
 
 % Calculate reverberation time (RT60)
-rt60 = (-60 - coef(2))/coef(1); % -60 = coef(1) * rt60 + coef(2)
+beginPnt = (-regInterval(1) - b) / a; % - regInterval(1) = a * beginPnt + b
+endPnt = (-60 - regInterval(1) - b)/a; % -60 - regInterval(1) = a * endPnt + b
+rt60 = endPnt - beginPnt;
 
 % Plot reverberation curve
 if isPlot
@@ -62,8 +66,11 @@ if isPlot
     xlim([0, sigLen/sampFreq]); ylim([-120, 0]);
     xlabel("Time [s]"); ylabel("Reverberation energy [dB]");
     hold on;
-    plot(timeAx, coef(1)*timeAx + coef(2), "LineWidth", 1);
-    xline(rt60, '-r', {'RT60'}, "LabelVerticalAlignment", "bottom", "LabelOrientation", "horizontal", "FontSize", 11);
+    plot(timeAx, a*timeAx + b, "LineWidth", 1);
+    yline(-regInterval(1), '-r', {'Reg begin point'}, "LabelHorizontalAlignment", "left", "LabelVerticalAlignment", "bottom", "FontSize", 11);
+    yline(-regInterval(2), '-r', {'Reg end point'}, "LabelHorizontalAlignment", "left", "LabelVerticalAlignment", "bottom", "FontSize", 11);
+    xline(beginPnt, '-r', {'RT60 begin point'}, "LabelVerticalAlignment", "bottom", "FontSize", 11);
+    xline(endPnt, '-r', {'RT60 end point'}, "LabelVerticalAlignment", "bottom", "FontSize", 11);
     legend(["Reverberation curve", sprintf("Linear regression in [%d, %d] dB", -1*regInterval(1), -1*regInterval(2))]);
     fprintf("Reverberation time (RT60) is %.3f [ms].\n", rt60*1000);
     hold off;
