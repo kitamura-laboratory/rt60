@@ -66,6 +66,7 @@ if isPlot
     xline(rt60, '-r', {'RT60'}, "LabelVerticalAlignment", "bottom", "LabelOrientation", "horizontal", "FontSize", 11);
     legend(["Reverberation curve", sprintf("Linear regression in [%d, %d] dB", -1*regInterval(1), -1*regInterval(2))]);
     fprintf("Reverberation time (RT60) is %.3f [ms].\n", rt60*1000);
+    hold off;
 end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EOF %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
